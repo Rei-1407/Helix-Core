@@ -75,7 +75,7 @@ export function render(root, params) {
   const relatedQuiz = QUIZZES.find(q => q.lessons.includes(num));
 
   root.innerHTML = `
-  <div class="page">
+  <div class="learn-page">
     <div class="learn-layout">
       <aside class="lesson-nav" id="lessonNav">${buildNav(lessons, num)}</aside>
 

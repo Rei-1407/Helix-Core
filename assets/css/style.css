@@ -181,7 +181,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding-top: var(--topbar-h);
   min-height: 100vh;
 }
-.page { padding: 34px 28px 80px; max-width: 1240px; margin: 0 auto; animation: fade .3s var(--ease); }
+.page { padding: 34px 40px 80px; max-width: 1440px; margin: 0 auto; animation: fade .3s var(--ease); }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 .page-head { margin-bottom: 26px; }
@@ -310,11 +310,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* =========================================================================
    LEARN — layout 3 cột: danh sách bài | nội dung | mục lục
    ========================================================================= */
+.learn-page { padding: 30px 40px 90px; }
 .learn-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 220px;
-  gap: 30px; align-items: start;
-  max-width: 1360px; margin: 0 auto;
+  grid-template-columns: 280px minmax(0, 1000px) 256px;
+  gap: 44px; align-items: start;
+  justify-content: center;      /* các cột bám nhau, phần thừa dồn ra lề — không có khe hở lớn */
 }
 
 /* Cột trái: danh mục bài học */
@@ -347,8 +348,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .lesson-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.7px; line-height: 1.2; }
 .lesson-head__meta { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
-/* Prose (markdown render) */
-.prose { max-width: var(--content-max); }
+/* Prose (markdown render) — lấp trọn cột nội dung, không tạo "đảo" chữ */
+.prose { max-width: 100%; }
 .prose h2 { font-size: 22px; font-weight: 800; margin: 34px 0 12px; letter-spacing: -.4px; scroll-margin-top: calc(var(--topbar-h) + 16px); }
 .prose h3 { font-size: 17.5px; font-weight: 700; margin: 26px 0 10px; scroll-margin-top: calc(var(--topbar-h) + 16px); }
 .prose h4 { font-size: 15px; font-weight: 700; margin: 20px 0 8px; }
@@ -395,7 +396,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .toc__link--h3 { padding-left: 22px; }
 
 /* Chân bài: điều hướng + CTA quiz */
-.lesson-foot { max-width: var(--content-max); margin-top: 40px; }
+.lesson-foot { max-width: 100%; margin-top: 40px; }
 .lesson-cta {
   display: flex; align-items: center; gap: 18px;
   padding: 22px 24px; border-radius: var(--r-lg);
@@ -581,8 +582,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    ========================================================================= */
 .sidebar-backdrop { display: none; }
 
-@media (max-width: 1200px) {
-  .learn-layout { grid-template-columns: 240px minmax(0, 1fr); }
+@media (max-width: 1240px) {
+  .learn-layout { grid-template-columns: 250px minmax(0, 1fr); justify-content: stretch; }
   .toc { display: none; }
 }
 @media (max-width: 1080px) {
