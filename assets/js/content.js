@@ -92,7 +92,7 @@ export async function loadContent() {
       // Phần phụ lục / bổ sung → bài "bonus"
       bonusCount += 1;
       num = 100 + bonusCount;
-      title = headLine.replace(/^phụ lục:\s*/i, '').trim();
+      title = headLine.replace(/^phụ lục\s*[a-zA-Z]?\s*[:.]?\s*/i, '').trim();
       icon = '🎓';
       kind = 'bonus';
     }

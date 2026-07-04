@@ -13,9 +13,9 @@ import { esc, progressRing } from '../util.js';
 export const title = 'Trang chủ';
 
 const PHASES = [
-  { n: 1, title: 'Nền tảng & Khởi động', desc: 'Hiểu bản chất Helix Core, cài đặt & cấu hình cho Unreal', mods: ['m1', 'm2'] },
-  { n: 2, title: 'Vận hành & Nâng cao', desc: 'Workflow hàng ngày, resolve, shelve, UGS, streams', mods: ['m3', 'm4'] },
-  { n: 3, title: 'Vai trò, thực hành & Tra cứu', desc: 'Việc từng vai trò, best practices, sự cố, CLI & thuật ngữ', mods: ['m5', 'm6'] },
+  { n: 1, title: 'Nền tảng & Bắt đầu', desc: 'Bản chất Perforce P4, khái niệm cốt lõi, cài đặt & cấu hình UE', mods: ['m1', 'm2'] },
+  { n: 2, title: 'Vận hành & Làm việc nhóm', desc: 'Workflow hàng ngày, resolve, shelve, editor, OFPA, UGS', mods: ['m3', 'm4'] },
+  { n: 3, title: 'Nâng cao, vai trò & Tra cứu', desc: 'Streams, vai trò, dựng server, best practices, sự cố, CLI', mods: ['m5', 'm6', 'm7'] },
 ];
 
 function greeting() {

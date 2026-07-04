@@ -1,5 +1,5 @@
 /* =========================================================================
-   exercises.js — Bài tập tình huống (thực hành).
+   exercises.js — Bài tập tình huống (thực hành), bám tài liệu v2.0 (Phụ lục C).
    3 kiểu:
      - 'order' : sắp xếp các bước cho đúng thứ tự.
      - 'multi' : chọn TẤT CẢ đáp án đúng.
@@ -18,7 +18,7 @@ export const EXERCISES = [
       'Lưu (Save) file/asset',
       'Sync lại một lần trước khi submit',
       'Resolve nếu có conflict',
-      'Submit kèm description rõ ràng',
+      'Submit kèm description rõ ràng (có mã task)',
     ],
     explain: 'Luôn sync đầu ngày và sync lại trước khi submit để tránh làm trên bản cũ; resolve trước rồi mới submit.',
   },
@@ -32,14 +32,14 @@ export const EXERCISES = [
       'Chuột phải asset → Rename (engine tự cập nhật reference)',
       'Chạy Fix Up Redirectors trên thư mục Content',
       'Save các thay đổi',
-      'Submit cả bản cũ (delete) và bản mới (add)',
+      'Submit cả bản cũ (delete/redirector) và bản mới (add) từ editor',
     ],
     explain: 'Đổi tên PHẢI làm trong Content Browser để engine fix reference; sau đó dọn redirector rồi submit.',
   },
   {
     id: 'ex-ignore', type: 'multi', icon: '⚙️', title: 'Cấu hình .p4ignore cho Unreal',
     lessons: [6],
-    prompt: 'Chọn TẤT CẢ những mục nên được đưa vào .p4ignore (không version).',
+    prompt: 'Chọn TẤT CẢ những mục NÊN đưa vào .p4ignore (không add vào depot).',
     options: [
       { text: 'Binaries/', correct: true },
       { text: 'Intermediate/', correct: true },
@@ -48,9 +48,10 @@ export const EXERCISES = [
       { text: '.vs/ và *.sln', correct: true },
       { text: 'Content/', correct: false },
       { text: 'Source/', correct: false },
+      { text: 'Build/ (chứa icon, splash, cấu hình đóng gói — CẦN version)', correct: false },
       { text: 'MyGame.uproject', correct: false },
     ],
-    explain: 'Ignore các thư mục sinh tự động và file IDE. Content/, Source/, Config/, .uproject thì PHẢI version.',
+    explain: 'Ignore các thư mục UE tự sinh và file IDE. Lưu ý: Build/ KHÔNG ignore (chứa cấu hình đóng gói theo platform). Content/, Source/, Config/, .uproject phải version.',
   },
   {
     id: 'ex-typemap', type: 'multi', icon: '🔑', title: 'Gán file type đúng trong Typemap',
@@ -64,20 +65,20 @@ export const EXERCISES = [
       { text: '.uasset → text', correct: false },
       { text: '.png → text', correct: false },
     ],
-    explain: 'Asset Unreal = binary+l (khóa), code = text, file biên dịch = binary+w. Ảnh/asset nhị phân không để text.',
+    explain: 'Asset Unreal = binary+l (khóa), code = text, file build = binary+w. Ảnh/asset nhị phân không để text. Nhớ: dòng khớp cuối cùng trong typemap thắng.',
   },
   {
     id: 'ex-locked', type: 'single', icon: '🔒', title: 'Asset đang bị người khác khóa',
-    lessons: [15, 8],
+    lessons: [17, 8],
     prompt: 'Bạn cần sửa BP_Hero.uasset nhưng nó đang bị đồng nghiệp check out (lock). Cách xử lý hợp lý nhất?',
     options: [
       'Dùng p4 sync -f để ghi đè và sửa luôn',
-      'Xem ai đang giữ bằng p4 opened rồi liên hệ họ nhờ submit/revert',
-      'Xóa file rồi tạo lại một asset mới trùng tên',
-      'Tự ý chạy p4 revert -C để cưỡng chế mở khóa',
+      'Xem ai đang giữ (p4 opened -a) rồi liên hệ họ nhờ submit/revert',
+      'Tự chạy p4 obliterate lên file đó',
+      'Copy file ra ngoài, sửa, rồi copy đè lại vào workspace',
     ],
     answer: 1,
-    explain: 'Liên hệ người giữ lock là cách đúng. Chỉ admin mới nên dùng p4 revert -C và phải rất cẩn thận vì có thể làm mất việc của họ.',
+    explain: 'Liên hệ người giữ đúng trong ~95% trường hợp. Chỉ khi khẩn (người đó nghỉ), admin mới gỡ phía server: p4 revert -C <tên workspace của họ> <file>.',
   },
   {
     id: 'ex-resolve', type: 'order', icon: '🤝', title: 'Xử lý "Must resolve files"',
@@ -87,7 +88,7 @@ export const EXERCISES = [
       'Nhận thông báo "must resolve" khi submit',
       'Chạy Get Latest Revision',
       'Chuột phải file → Resolve',
-      'Chọn cách hòa giải (Merge tool cho code / Accept Yours|Theirs cho binary)',
+      'Chọn cách hòa giải (P4Merge/Accept Merged cho code; Accept Yours|Theirs cho binary)',
       'Submit lại changelist',
     ],
     explain: 'Có bản mới hơn trên server nên phải resolve trước. File code trộn bằng P4Merge; asset binary chỉ chọn một bản.',
@@ -104,11 +105,36 @@ export const EXERCISES = [
       'Unshelve (p4 unshelve -s <CL>) để lấy lại',
       'Tiếp tục công việc',
     ],
-    explain: 'Shelve giữ thay đổi trên server mà không submit — lý tưởng để đổi máy hoặc nhờ review.',
+    explain: 'Shelve giữ thay đổi trên server mà không submit. Lưu ý: với file +l, shelve KHÔNG nhả khóa cho tới khi submit/revert.',
+  },
+  {
+    id: 'ex-ofpa', type: 'single', icon: '🗺️', title: 'Cùng làm một level với OFPA',
+    lessons: [11],
+    prompt: 'Level bật OFPA/World Partition, bạn và đồng nghiệp cùng cần chỉnh sửa. Cách làm ĐÚNG là gì?',
+    options: [
+      'Chỉ một người được mở level, người kia phải chờ',
+      'Mỗi người sửa các actor KHÁC NHAU, save + submit từ trong editor qua View Changelists',
+      'Cả hai cùng sửa một actor rồi merge thủ công',
+      'Xóa thư mục __ExternalActors__ để tránh xung đột',
+    ],
+    answer: 1,
+    explain: 'OFPA lưu mỗi actor thành file riêng nên nhiều người cùng làm một level (khác actor). Cùng một actor thì không được (file actor vẫn binary+l). Submit từ editor để thấy tên actor thật.',
+  },
+  {
+    id: 'ex-merge', type: 'order', icon: '🌿', title: 'Đưa feature từ Dev lên Main (merge down, copy up)',
+    lessons: [13],
+    prompt: 'Bạn hoàn thành một feature ở nhánh Dev, muốn đưa lên Main an toàn. Sắp xếp theo quy tắc "merge down, copy up".',
+    steps: [
+      'Merge down: Main → Dev (lấy thay đổi mới nhất về Dev)',
+      'Resolve mọi conflict ngay tại Dev',
+      'Build & test tại Dev cho ổn định',
+      'Copy up: Dev → Main (ghi đè 1:1, Main không phải resolve)',
+    ],
+    explain: 'Nhờ merge down rồi copy up, nhánh ổn định (Main/Release) không bao giờ là nơi xử lý conflict — mọi hỗn loạn giải quyết ở nhánh con trước.',
   },
   {
     id: 'ex-artist-start', type: 'single', icon: '🎨', title: 'Artist mở editor không cần Visual Studio',
-    lessons: [11],
+    lessons: [12],
     prompt: 'Một artist mới vào dự án, máy không cài Visual Studio, muốn mở Unreal Editor nhanh nhất. Nên làm gì?',
     options: [
       'Clone repo bằng Git rồi mở project',
@@ -118,6 +144,19 @@ export const EXERCISES = [
     ],
     answer: 1,
     explain: 'UGS tải binary biên dịch sẵn (PCB) khớp changelist nên artist không cần compile — chỉ Sync và chạy.',
+  },
+  {
+    id: 'ex-admin-setup', type: 'order', icon: '🖥️', title: 'Admin dựng depot cho dự án UE',
+    lessons: [15],
+    prompt: 'Admin khởi tạo depot mới cho project Unreal. Sắp xếp đúng thứ tự (làm sai thứ tự sẽ rất khó sửa).',
+    steps: [
+      'Tạo stream depot (p4 depot -t stream GameDepot)',
+      'Tạo mainline (p4 stream -t mainline //GameDepot/Main)',
+      'Dán typemap UE (p4 typemap) — TRƯỚC khi add file đầu tiên',
+      'Tạo workspace trỏ vào //GameDepot/Main',
+      'Đặt .p4ignore rồi add + submit project lần đầu',
+    ],
+    explain: 'Typemap phải có trước khi add file (không áp ngược cho file đã version). Thứ tự: depot → mainline → typemap → workspace → add project.',
   },
 ];
 

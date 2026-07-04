@@ -6,7 +6,7 @@
 const KEY = 'helix_academy_state_v1';
 
 // Đổi token này để buộc làm mới sạch tiến trình cho mọi máy ở lần tải kế tiếp.
-const RESET_TOKEN = 'reset-2026-07-04';
+const RESET_TOKEN = 'reset-2026-07-04-v2doc';
 
 /** Ngày hôm nay dạng YYYY-MM-DD theo giờ máy. */
 export function today() {
