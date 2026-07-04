@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Helix Core Academy — Học & luyện Perforce cho Unreal Engine</title>
+  <meta name="description" content="Nền tảng học tập nội bộ giúp bạn thành thạo Helix Core (Perforce) cho studio game Unreal Engine: bài học, quiz, bài tập tình huống và ôn tập lặp lại ngắt quãng." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%A7%AC%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Thanh điều hướng dọc bên trái -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand__mark">🧬</span>
+      <div class="brand__text">
+        <strong>Helix Core</strong>
+        <span>Academy</span>
+      </div>
+    </div>
+
+    <nav class="nav" id="mainNav">
+      <a class="nav__item" data-route="dashboard" href="#/dashboard">
+        <span class="nav__icon">🏠</span><span>Trang chủ</span>
+      </a>
+      <a class="nav__item" data-route="learn" href="#/learn">
+        <span class="nav__icon">📚</span><span>Bài học</span>
+      </a>
+      <a class="nav__item" data-route="practice" href="#/practice">
+        <span class="nav__icon">🎯</span><span>Luyện tập</span>
+      </a>
+      <a class="nav__item" data-route="review" href="#/review">
+        <span class="nav__icon">🔁</span><span>Ôn tập</span>
+        <span class="nav__badge" id="reviewBadge" hidden>0</span>
+      </a>
+      <a class="nav__item" data-route="progress" href="#/progress">
+        <span class="nav__icon">📊</span><span>Tiến độ</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__foot">
+      <button class="theme-toggle" id="themeToggle" title="Đổi giao diện sáng/tối">
+        <span class="theme-toggle__icon">🌙</span>
+        <span class="theme-toggle__label">Giao diện tối</span>
+      </button>
+      <p class="sidebar__note">Tài liệu nội bộ · dữ liệu học lưu trên máy này</p>
+    </div>
+  </aside>
+
+  <!-- Thanh trạng thái trên cùng -->
+  <header class="topbar">
+    <button class="topbar__menu" id="menuToggle" aria-label="Menu">☰</button>
+    <div class="topbar__title" id="topbarTitle">Trang chủ</div>
+    <div class="topbar__stats">
+      <div class="stat-pill" title="Chuỗi ngày học liên tục">
+        <span class="stat-pill__icon">🔥</span>
+        <span class="stat-pill__value" id="streakValue">0</span>
+      </div>
+      <div class="stat-pill" title="Điểm kinh nghiệm tích luỹ">
+        <span class="stat-pill__icon">⚡</span>
+        <span class="stat-pill__value" id="xpValue">0</span>
+      </div>
+      <div class="stat-pill stat-pill--due" id="duePill" title="Thẻ cần ôn hôm nay" hidden>
+        <span class="stat-pill__icon">🃏</span>
+        <span class="stat-pill__value" id="dueValue">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Vùng nội dung chính -->
+  <main class="main" id="view">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Đang tải tài liệu…</p>
+    </div>
+  </main>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
