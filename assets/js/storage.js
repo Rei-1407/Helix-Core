@@ -92,6 +92,19 @@ export function addXp(amount) {
   return amount;
 }
 
+/* ---- Cấp độ (Level) ---- */
+export const XP_PER_LEVEL = 300;
+export function levelInfo() {
+  const xp = state.xp;
+  const level = Math.floor(xp / XP_PER_LEVEL) + 1;
+  const inLevel = xp - (level - 1) * XP_PER_LEVEL;
+  return {
+    level, xp, inLevel, need: XP_PER_LEVEL,
+    toNext: XP_PER_LEVEL - inLevel,
+    pct: Math.round(inLevel / XP_PER_LEVEL * 100),
+  };
+}
+
 /** Đánh dấu có hoạt động học hôm nay → cập nhật streak. */
 export function touchStreak() {
   const t = today();
@@ -129,6 +142,14 @@ export function markLessonRead(lessonId) {
     state.lessonsRead[lessonId] = true;
     addXp(15);
     touchStreak();
+    save(); emit();
+    return true;
+  }
+  return false;
+}
+export function unmarkLessonRead(lessonId) {
+  if (state.lessonsRead[lessonId]) {
+    delete state.lessonsRead[lessonId];
     save(); emit();
     return true;
   }

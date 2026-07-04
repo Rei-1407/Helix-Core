@@ -12,7 +12,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%A7%AC%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
-  <!-- Thanh điều hướng dọc bên trái -->
+  <!-- Thanh bên trái: điều hướng + cây bài học -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <span class="brand__mark">🧬</span>
@@ -26,47 +26,66 @@
       <a class="nav__item" data-route="dashboard" href="#/dashboard">
         <span class="nav__icon">🏠</span><span>Trang chủ</span>
       </a>
-      <a class="nav__item" data-route="learn" href="#/learn">
-        <span class="nav__icon">📚</span><span>Bài học</span>
-      </a>
-      <a class="nav__item" data-route="practice" href="#/practice">
-        <span class="nav__icon">🎯</span><span>Luyện tập</span>
-      </a>
       <a class="nav__item" data-route="review" href="#/review">
-        <span class="nav__icon">🔁</span><span>Ôn tập</span>
+        <span class="nav__icon">🔁</span><span>Luyện tập hàng ngày</span>
         <span class="nav__badge" id="reviewBadge" hidden>0</span>
       </a>
+      <a class="nav__item" data-route="learn" href="#/learn">
+        <span class="nav__icon">📚</span><span>Lộ trình học</span>
+      </a>
+      <a class="nav__item" data-route="practice" href="#/practice">
+        <span class="nav__icon">🎯</span><span>Luyện tập & Quiz</span>
+      </a>
       <a class="nav__item" data-route="progress" href="#/progress">
-        <span class="nav__icon">📊</span><span>Tiến độ</span>
+        <span class="nav__icon">📊</span><span>Tiến độ & Huy hiệu</span>
       </a>
     </nav>
 
+    <div class="sidebar__tree" id="sidebarTree">
+      <div class="sidebar__label">Bài học theo nhóm</div>
+      <div id="moduleTree" class="module-tree"></div>
+    </div>
+
     <div class="sidebar__foot">
-      <button class="theme-toggle" id="themeToggle" title="Đổi giao diện sáng/tối">
-        <span class="theme-toggle__icon">🌙</span>
-        <span class="theme-toggle__label">Giao diện tối</span>
-      </button>
-      <p class="sidebar__note">Tài liệu nội bộ · dữ liệu học lưu trên máy này</p>
+      <div class="side-progress">
+        <div class="side-progress__row">
+          <span>Tiến độ khoá học</span>
+          <span id="overallPct">0%</span>
+        </div>
+        <div class="progress"><div class="progress__bar" id="overallBar" style="width:0%"></div></div>
+      </div>
     </div>
   </aside>
 
-  <!-- Thanh trạng thái trên cùng -->
+  <!-- Thanh trên cùng: tìm kiếm + trạng thái -->
   <header class="topbar">
     <button class="topbar__menu" id="menuToggle" aria-label="Menu">☰</button>
-    <div class="topbar__title" id="topbarTitle">Trang chủ</div>
+
+    <div class="search" id="search">
+      <span class="search__icon">🔍</span>
+      <input class="search__input" id="globalSearch" type="text" autocomplete="off"
+             placeholder="Tìm bài học, khái niệm…" />
+      <kbd class="search__kbd">Ctrl K</kbd>
+      <div class="search__panel" id="searchPanel" hidden></div>
+    </div>
+
     <div class="topbar__stats">
       <div class="stat-pill" title="Chuỗi ngày học liên tục">
         <span class="stat-pill__icon">🔥</span>
         <span class="stat-pill__value" id="streakValue">0</span>
       </div>
-      <div class="stat-pill" title="Điểm kinh nghiệm tích luỹ">
-        <span class="stat-pill__icon">⚡</span>
-        <span class="stat-pill__value" id="xpValue">0</span>
-      </div>
       <div class="stat-pill stat-pill--due" id="duePill" title="Thẻ cần ôn hôm nay" hidden>
         <span class="stat-pill__icon">🃏</span>
         <span class="stat-pill__value" id="dueValue">0</span>
       </div>
+      <div class="level-pill" id="levelPill" title="Cấp độ & kinh nghiệm">
+        <div class="level-pill__ring" id="levelRing"></div>
+        <div class="level-pill__text">
+          <strong id="levelValue">Lv.1</strong>
+          <span id="xpValue">0 XP</span>
+        </div>
+      </div>
+      <button class="icon-btn" id="themeToggle" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện">🌙</button>
     </div>
   </header>
 

@@ -1,15 +1,22 @@
 /* =========================================================================
-   dashboard.js — Trang chủ: tổng quan ngày học, ôn tập, tiếp tục học.
+   dashboard.js — Trang chủ: tổng quan, lộ trình theo giai đoạn, huy hiệu.
    ========================================================================= */
 
 import { getCachedContent } from '../content.js';
-import { getState, isLessonRead, today, addDays } from '../storage.js';
+import { getState, isLessonRead, levelInfo } from '../storage.js';
 import { counts } from '../srs.js';
+import { MODULES } from '../data/lessons.js';
 import { QUIZZES } from '../data/quizzes.js';
-import { EXERCISES } from '../data/exercises.js';
-import { esc } from '../util.js';
+import { computeAchievements } from '../achievements.js';
+import { esc, progressRing } from '../util.js';
 
 export const title = 'Trang chủ';
+
+const PHASES = [
+  { n: 1, title: 'Nền tảng & Khởi động', desc: 'Hiểu bản chất Helix Core, cài đặt & cấu hình cho Unreal', mods: ['m1', 'm2'] },
+  { n: 2, title: 'Vận hành & Nâng cao', desc: 'Workflow hàng ngày, resolve, shelve, UGS, streams', mods: ['m3', 'm4'] },
+  { n: 3, title: 'Vai trò, thực hành & Tra cứu', desc: 'Việc từng vai trò, best practices, sự cố, CLI & thuật ngữ', mods: ['m5', 'm6'] },
+];
 
 function greeting() {
   const h = new Date().getHours();
@@ -19,130 +26,108 @@ function greeting() {
   return 'Chào buổi tối';
 }
 
-function heatmap(reviewLog) {
-  const WEEKS = 16;
-  const cells = [];
-  const end = today();
-  // căn về Chủ nhật gần nhất để cột thẳng hàng
-  const total = WEEKS * 7;
-  for (let i = total - 1; i >= 0; i--) {
-    const d = addDays(end, -i);
-    const n = reviewLog[d] || 0;
-    const lvl = n === 0 ? 0 : n < 4 ? 1 : n < 10 ? 2 : 3;
-    cells.push(`<div class="heat-cell" data-lvl="${lvl}" title="${d}: ${n} lượt ôn"></div>`);
-  }
-  return `<div class="heatmap">${cells.join('')}</div>
-    <div class="heat-legend"><span>Ít</span>
-      <div class="heat-cell" data-lvl="0"></div><div class="heat-cell" data-lvl="1"></div>
-      <div class="heat-cell" data-lvl="2"></div><div class="heat-cell" data-lvl="3"></div>
-      <span>Nhiều</span></div>`;
+function phaseProgress(content, mods) {
+  const nums = MODULES.filter(m => mods.includes(m.id)).flatMap(m => m.lessons);
+  const ls = nums.map(n => content.byNum[n]).filter(Boolean);
+  const read = ls.filter(l => isLessonRead(l.id)).length;
+  return { read, total: ls.length, pct: ls.length ? Math.round(read / ls.length * 100) : 0 };
 }
 
 export function render(root) {
   const state = getState();
   const content = getCachedContent();
   const c = counts();
+  const lv = levelInfo();
+
   const lessons = content ? content.lessons.filter(l => l.kind === 'lesson') : [];
-  const readCount = lessons.filter(l => isLessonRead(l.id)).length;
+  const read = lessons.filter(l => isLessonRead(l.id)).length;
   const totalLessons = lessons.length;
-  const nextLessons = lessons.filter(l => !isLessonRead(l.id)).slice(0, 3);
-  const lessonPct = totalLessons ? Math.round(readCount / totalLessons * 100) : 0;
+  const lessonPct = totalLessons ? Math.round(read / totalLessons * 100) : 0;
+  const nextLesson = lessons.find(l => !isLessonRead(l.id));
+  const quizPassed = QUIZZES.filter(q => (state.quizStats[q.id]?.best || 0) >= 80).length;
+  const quizAttempted = Object.keys(state.quizStats).length;
 
-  // Hero ôn tập
-  const heroInner = c.todo > 0 ? `
-    <div class="hero__label">Ôn tập hôm nay</div>
-    <h2>Đến giờ ôn lại rồi 🧠</h2>
-    <p>Học rồi sẽ quên — ôn đúng lúc để nhớ lâu. Hôm nay bạn có thẻ cần xem lại.</p>
-    <div class="hero__row">
-      <div><div class="hero__due-num">${c.todo}</div><div class="hero__due-sub">${c.due} đến hạn · ${c.fresh} thẻ mới</div></div>
-      <a class="btn btn--primary btn--lg" href="#/review">Ôn tập ngay →</a>
-    </div>` : `
-    <div class="hero__label">Ôn tập hôm nay</div>
-    <h2>Xong hết rồi! 🎉</h2>
-    <p>Không còn thẻ nào đến hạn hôm nay. Học thêm bài mới để nạp thẻ vào lịch ôn, hoặc quay lại vào ngày mai.</p>
-    <div class="hero__row">
-      <a class="btn btn--primary btn--lg" href="#/learn">Học bài mới →</a>
-    </div>`;
-
-  const continueHTML = nextLessons.length ? nextLessons.map(l => `
-    <a class="continue-item" href="#/learn/${l.num}">
-      <div class="continue-item__ic">${l.icon}</div>
-      <div class="continue-item__body">
-        <div class="continue-item__title">Mục ${l.num}. ${esc(l.title)}</div>
-        <div class="continue-item__meta">${esc(l.summary || 'Bài học').slice(0, 74)}…</div>
-      </div>
-      <div class="continue-item__arrow">→</div>
-    </a>`).join('') : `
-    <div class="continue-item" style="cursor:default">
-      <div class="continue-item__ic">✅</div>
-      <div class="continue-item__body">
-        <div class="continue-item__title">Đã đọc hết mọi bài học!</div>
-        <div class="continue-item__meta">Giờ tập trung vào luyện tập và ôn tập nhé.</div>
-      </div>
-    </div>`;
+  const achs = computeAchievements();
+  const unlocked = achs.filter(a => a.on).length;
 
   root.innerHTML = `
   <div class="page">
-    <div class="page-head">
-      <div class="eyebrow">${new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-      <h1>${greeting()}! 👋</h1>
-      <p>Sẵn sàng thành thạo Helix Core cho Unreal Engine chưa? Mỗi ngày một chút, đều đặn là chìa khoá.</p>
-    </div>
-
-    <div class="dash-grid">
-      <div class="dash-col">
-        <div class="hero">${heroInner}</div>
-
-        <div class="card">
-          <div class="section-title">📚 Tiếp tục học
-            <span class="chip">${readCount}/${totalLessons} bài</span>
-          </div>
-          <div class="progress" style="margin-bottom:16px"><div class="progress__bar" style="width:${lessonPct}%"></div></div>
-          <div style="display:flex;flex-direction:column;gap:10px">${continueHTML}</div>
-        </div>
-
-        <div>
-          <div class="section-title">⚡ Bắt đầu nhanh</div>
-          <div class="quick-grid">
-            <a class="quick-card" href="#/learn"><span class="quick-card__ic">📖</span><span class="quick-card__t">Học bài</span><span class="quick-card__d">${totalLessons} bài theo lộ trình</span></a>
-            <a class="quick-card" href="#/practice"><span class="quick-card__ic">🎯</span><span class="quick-card__t">Làm quiz</span><span class="quick-card__d">${QUIZZES.length} bộ trắc nghiệm</span></a>
-            <a class="quick-card" href="#/practice/exercises"><span class="quick-card__ic">🧩</span><span class="quick-card__t">Bài tập</span><span class="quick-card__d">${EXERCISES.length} tình huống thực hành</span></a>
-            <a class="quick-card" href="#/review"><span class="quick-card__ic">🔁</span><span class="quick-card__t">Ôn tập</span><span class="quick-card__d">${c.todo} thẻ chờ hôm nay</span></a>
-          </div>
+    <!-- HERO -->
+    <div class="dash-hero">
+      <div class="dash-hero__main">
+        <div class="eyebrow">${new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+        <h1>${greeting()}! 👋</h1>
+        <p>Học và luyện Helix Core (Perforce) cho Unreal Engine theo lộ trình có hệ thống. Mỗi bài hoàn thành, mỗi lượt ôn là một bước tiến tới thành thạo.</p>
+        <div class="dash-hero__btns">
+          <a class="btn btn--primary btn--lg" href="#/learn${nextLesson ? '/' + nextLesson.num : ''}">▶ ${read ? 'Tiếp tục học' : 'Bắt đầu học'}</a>
+          <a class="btn btn--ghost btn--lg" href="#/learn">📚 Xem lộ trình</a>
         </div>
       </div>
+      <div class="dash-hero__ring">
+        ${progressRing(lessonPct)}
+        <div class="dash-hero__ring-label"><b>${lessonPct}%</b><span>hoàn thành</span></div>
+      </div>
+    </div>
 
-      <div class="dash-col">
-        <div class="mini-stats">
-          <div class="mini-stat"><div class="mini-stat__top">🔥 Chuỗi ngày</div><div class="mini-stat__val">${state.streak.current}</div><div class="mini-stat__sub">Dài nhất: ${state.streak.longest} ngày</div></div>
-          <div class="mini-stat"><div class="mini-stat__top">⚡ Kinh nghiệm</div><div class="mini-stat__val">${state.xp}</div><div class="mini-stat__sub">XP tích luỹ</div></div>
-          <div class="mini-stat"><div class="mini-stat__top">🃏 Đã thuộc</div><div class="mini-stat__val">${c.learned}<span style="font-size:15px;color:var(--text-3)">/${c.total}</span></div><div class="mini-stat__sub">${c.mature} thẻ nhớ lâu</div></div>
-          <div class="mini-stat"><div class="mini-stat__top">✅ Hoàn thành</div><div class="mini-stat__val">${lessonPct}%</div><div class="mini-stat__sub">${readCount}/${totalLessons} bài học</div></div>
+    <!-- BANNER ÔN TẬP -->
+    <a class="review-banner ${c.todo ? '' : 'is-empty'}" href="#/review">
+      <div class="review-banner__ic">${c.todo ? '🗓️' : '🌤️'}</div>
+      <div class="review-banner__body">
+        <strong>${c.todo ? `Có ${c.todo} thẻ cần ôn hôm nay` : 'Hôm nay không còn thẻ nào để ôn'}</strong>
+        <span>Luyện tập hàng ngày · 🔥 chuỗi ${state.streak.current} ngày · ${c.learned}/${c.total} thẻ đã thuộc</span>
+      </div>
+      <span class="review-banner__cta">${c.todo ? 'Ôn ngay →' : 'Xem lại →'}</span>
+    </a>
+
+    <!-- 4 THẺ CHỈ SỐ -->
+    <div class="stat-cards">
+      <div class="big-stat"><div class="big-stat__ic">📚</div><div class="big-stat__val">${read}<span class="big-stat__of">/${totalLessons}</span></div><div class="big-stat__lbl">Bài học hoàn thành</div></div>
+      <div class="big-stat"><div class="big-stat__ic">🎯</div><div class="big-stat__val">${quizPassed}<span class="big-stat__of">/${QUIZZES.length}</span></div><div class="big-stat__lbl">Quiz đạt (≥80%) · đã làm ${quizAttempted}</div></div>
+      <div class="big-stat"><div class="big-stat__ic">🃏</div><div class="big-stat__val">${c.learned}<span class="big-stat__of">/${c.total}</span></div><div class="big-stat__lbl">Thẻ đang ôn · ${c.mature} nhớ lâu</div></div>
+      <div class="big-stat"><div class="big-stat__ic">🏆</div><div class="big-stat__val">Lv.${lv.level}</div><div class="big-stat__lbl">${lv.xp} XP · còn ${lv.toNext} XP lên cấp</div></div>
+    </div>
+
+    <!-- CỘT ĐÔI: LỘ TRÌNH + HUY HIỆU -->
+    <div class="dash-cols">
+      <div>
+        <div class="section-title">🗺️ Lộ trình theo giai đoạn <a class="section-title__link" href="#/learn">Chi tiết →</a></div>
+        <div class="phase-list">
+          ${PHASES.map(p => {
+            const pr = phaseProgress(content, p.mods);
+            return `<a class="phase" href="#/learn">
+              <div class="phase__num">${p.n}</div>
+              <div class="phase__body">
+                <div class="phase__title">${esc(p.title)}</div>
+                <div class="phase__desc">${esc(p.desc)}</div>
+                <div class="phase__bar"><div class="progress"><div class="progress__bar" style="width:${pr.pct}%"></div></div><span>${pr.read}/${pr.total} bài</span></div>
+              </div>
+              <div class="phase__pct">${pr.pct}%</div>
+            </a>`;
+          }).join('')}
         </div>
 
-        <div class="card">
-          <div class="section-title">🗓️ Lịch sử ôn tập</div>
-          ${heatmap(state.reviewLog)}
-        </div>
+        ${nextLesson ? `
+        <div class="section-title" style="margin-top:26px">🚀 Bắt đầu từ đây</div>
+        <a class="continue-item" href="#/learn/${nextLesson.num}">
+          <div class="continue-item__ic">${nextLesson.icon}</div>
+          <div class="continue-item__body">
+            <div class="continue-item__title">Mục ${nextLesson.num}. ${esc(nextLesson.title)}</div>
+            <div class="continue-item__meta">Bài học tiếp theo trong lộ trình của bạn</div>
+          </div>
+          <div class="continue-item__arrow">→</div>
+        </a>` : ''}
+      </div>
 
-        <div class="card">
-          <div class="section-title">💡 Mẹo hôm nay</div>
-          <p style="color:var(--text-2);font-size:14px;margin:0">${randomTip()}</p>
+      <div>
+        <div class="section-title">🏅 Huy hiệu <span class="chip chip--primary">${unlocked}/${achs.length}</span></div>
+        <div class="badges">
+          ${achs.map(a => `
+            <div class="badge ${a.on ? 'is-on' : ''}" title="${esc(a.t)} — ${esc(a.d)}">
+              <div class="badge__ic">${a.on ? a.ic : '🔒'}</div>
+              <div class="badge__t">${esc(a.t)}</div>
+            </div>`).join('')}
         </div>
       </div>
     </div>
   </div>`;
-}
-
-function randomTip() {
-  const tips = [
-    'Asset Unreal (<code>.uasset</code>, <code>.umap</code>) phải là <strong>binary+l</strong> — đây là lý do then chốt dùng Perforce.',
-    'Luôn <strong>sync đầu ngày</strong> và <strong>sync lại trước khi submit</strong> để tránh làm trên bản cũ.',
-    'Đổi tên/di chuyển asset phải làm <strong>trong Content Browser</strong>, không dùng Explorer hay P4V.',
-    'Quy tắc vàng: <strong>1 người + 1 máy = 1 workspace</strong>.',
-    'Đừng giữ <strong>lock</strong> một asset quan trọng quá lâu — bạn đang chặn cả team.',
-    '<strong>Shelve</strong> giúp chuyển việc dở sang máy khác mà không cần submit.',
-    'Với asset nhị phân, resolve chỉ có <strong>Accept Yours / Theirs</strong> — nên lock để tránh conflict từ đầu.',
-  ];
-  return tips[Math.floor(Math.random() * tips.length)];
 }

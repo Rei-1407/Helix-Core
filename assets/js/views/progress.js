@@ -3,32 +3,15 @@
    ========================================================================= */
 
 import { getCachedContent } from '../content.js';
-import { getState, isLessonRead, resetState } from '../storage.js';
+import { getState, isLessonRead, resetState, levelInfo } from '../storage.js';
 import { counts } from '../srs.js';
 import { MODULES } from '../data/lessons.js';
 import { QUIZZES } from '../data/quizzes.js';
 import { FLASHCARDS } from '../data/flashcards.js';
+import { computeAchievements } from '../achievements.js';
 import { esc, toast } from '../util.js';
 
 export const title = 'Tiến độ';
-
-function achievements(state, content, c) {
-  const lessons = content ? content.lessons.filter(l => l.kind === 'lesson') : [];
-  const readCount = lessons.filter(l => isLessonRead(l.id)).length;
-  const quizDone = Object.keys(state.quizStats).length;
-  const perfect = Object.values(state.quizStats).some(s => s.best === 100);
-  return [
-    { ic: '🌱', t: 'Bước đầu tiên', d: 'Đọc xong bài học đầu tiên', on: readCount >= 1 },
-    { ic: '🔥', t: 'Đều đặn 3 ngày', d: 'Chuỗi học 3 ngày liên tục', on: state.streak.longest >= 3 },
-    { ic: '⚡', t: 'Kiên trì 7 ngày', d: 'Chuỗi học 7 ngày liên tục', on: state.streak.longest >= 7 },
-    { ic: '📚', t: 'Nửa chặng đường', d: 'Đọc 50% số bài học', on: lessons.length && readCount >= lessons.length / 2 },
-    { ic: '🎓', t: 'Đọc hết giáo trình', d: 'Hoàn thành tất cả bài học', on: lessons.length && readCount >= lessons.length },
-    { ic: '🎯', t: 'Điểm tuyệt đối', d: 'Đạt 100% một bộ quiz', on: perfect },
-    { ic: '🧠', t: 'Nhà chiến lược', d: `Làm ${QUIZZES.length} bộ quiz`, on: quizDone >= QUIZZES.length },
-    { ic: '🃏', t: 'Ghi nhớ sâu', d: 'Có 10 thẻ nhớ lâu (mature)', on: c.mature >= 10 },
-    { ic: '💎', t: 'Bậc thầy Helix', d: 'Đạt 500 XP', on: state.xp >= 500 },
-  ];
-}
 
 function masteryRows(content) {
   const rows = [];
@@ -60,7 +43,8 @@ export function render(root) {
   const readCount = lessons.filter(l => isLessonRead(l.id)).length;
   const quizDone = Object.keys(state.quizStats).length;
 
-  const achs = achievements(state, content, c);
+  const lv = levelInfo();
+  const achs = computeAchievements();
   const unlocked = achs.filter(a => a.on).length;
 
   root.innerHTML = `
@@ -72,7 +56,7 @@ export function render(root) {
 
     <div class="stat-cards">
       <div class="big-stat"><div class="big-stat__ic">🔥</div><div class="big-stat__val">${state.streak.current}</div><div class="big-stat__lbl">Chuỗi ngày (dài nhất ${state.streak.longest})</div></div>
-      <div class="big-stat"><div class="big-stat__ic">⚡</div><div class="big-stat__val">${state.xp}</div><div class="big-stat__lbl">Điểm kinh nghiệm</div></div>
+      <div class="big-stat"><div class="big-stat__ic">🏆</div><div class="big-stat__val">Lv.${lv.level}</div><div class="big-stat__lbl">${lv.xp} XP · còn ${lv.toNext} XP lên cấp</div></div>
       <div class="big-stat"><div class="big-stat__ic">📚</div><div class="big-stat__val">${readCount}/${lessons.length}</div><div class="big-stat__lbl">Bài học đã đọc</div></div>
       <div class="big-stat"><div class="big-stat__ic">🃏</div><div class="big-stat__val">${c.learned}/${c.total}</div><div class="big-stat__lbl">Thẻ đang ôn (${c.mature} nhớ lâu)</div></div>
     </div>
